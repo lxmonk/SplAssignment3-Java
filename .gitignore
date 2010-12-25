@@ -1,0 +1,7 @@
+# vim backup files
+*~
+# class files
+*.class
+
+#.setting dir
+.settings*
