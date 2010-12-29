@@ -19,12 +19,20 @@ public class ClientOrders {
 		_sellOrders = new ArrayList<StockOrder>();
 	}
 	
-	void addOrder(StockOrder order) {
-		if (order.getType() == "buyOrder")
-			_buyOrders.add(order);
-		else
-			if (order.getType() == "sellOrder")
-				_sellOrders.add(order);
-			// else TODO:throw exeption; 
+//	void addOrder(StockOrder order) {
+//		if (order.getType() == "buyOrder")
+//			_buyOrders.add(order);
+//		else
+//			if (order.getType() == "sellOrder")
+//				_sellOrders.add(order);
+//			// else TODO:throw exeption; 
+//	}
+	
+	public void addBuyOrder(StockOrder order) {
+		_buyOrders.add(order);
+	}
+
+	public void addSellOrder(StockOrder order) {
+		_sellOrders.add(order);
 	}
 }
