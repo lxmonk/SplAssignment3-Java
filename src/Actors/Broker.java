@@ -23,8 +23,8 @@ public class Broker implements Listener {
 	Client _brokerStompClient;	// Stomp Client
 	final int N=4;				 //Max number of clients the broker can deal with
 	final String _name;
-	final float _commission;
-	float _cash;
+	final double _commission;
+	double _cash;
 	int _day;
 	Map<String,TradingClient> _clients;
 
@@ -32,19 +32,19 @@ public class Broker implements Listener {
 	int _numClosedCliends;
 
 
-	public Broker(String name,float commision,int day,String server, int port, String login, String pass) throws LoginException, IOException {
+	public Broker(String name,double commision,String server, int port, String login, String pass) throws LoginException, IOException {
 		_name=name;
 		_commission=commision;
 		_cash=0;
 		_connected=false;
-		_day=day;
+		_day=0;
 		_clients = new HashMap<String, TradingClient>();
 		_numClosedCliends=0;
 		_brokerStompClient = new Client(server,port,login,pass);
 	}
 
-	public Broker(String name,float commision,int day,String server, int port) throws LoginException, IOException {
-		this(name,commision,day,server,port,"login","pass");
+	public Broker(String name,double commision,String server, int port) throws LoginException, IOException {
+		this(name,commision,server,port,"login","pass");
 	}
 
 	public void connectToStockExcange() {
@@ -59,7 +59,7 @@ public class Broker implements Listener {
 	 * @see Stomp.Listener#message(java.util.Map, java.lang.String)
 	 */
 	@Override
-	public void message(Map headers, String body) {
+	public void message(Map headers, String body,String origin) {
 		Vector<String> parts = new Vector<String>();
 		for (String s : body.split(" "))
 			parts.add(s);
@@ -88,12 +88,12 @@ public class Broker implements Listener {
 			} 
 			// the buyer in a deal
 			if ((parts.elementAt(0).equals("deal")) && (parts.size() == 8) && (parts.elementAt(2).equals(_name)))  {
-				deal("dealBought",parts.elementAt(1),parts.elementAt(5),Integer.parseInt(parts.elementAt(6)),Integer.parseInt(parts.elementAt(7)));
+				deal("dealBought",parts.elementAt(1),parts.elementAt(5),Integer.parseInt(parts.elementAt(6)),Double.parseDouble(parts.elementAt(7)));
 				return;
 			}
 			// the seller in a deal
 			if ((parts.elementAt(0).equals("deal")) && (parts.size() == 8) && (parts.elementAt(4).equals(_name)))  {
-				deal("dealSold",parts.elementAt(3),parts.elementAt(5),Integer.parseInt(parts.elementAt(6)),Integer.parseInt(parts.elementAt(7)));
+				deal("dealSold",parts.elementAt(3),parts.elementAt(5),Integer.parseInt(parts.elementAt(6)),Double.parseDouble(parts.elementAt(7)));
 				return;
 			} 
 			// buyOrder
@@ -116,10 +116,10 @@ public class Broker implements Listener {
 	} 
 		
 
-	private void deal(String type,String clientName,String stockName,int amount,int price) {
-		_cash+=(price*amount)/_commission;
+	private void deal(String type,String clientName,String stockName,int amount,double price) {
+		_cash+=(price*amount)*_commission;
 		_brokerStompClient.send("/topic/cDeals-"+clientName,
-				type+" "+clientName+" "+stockName+" "+amount+" "+price+" "+_commission);
+				type+" "+clientName+" "+stockName+" "+amount+" "+price+" "+_commission+"\n");
 	}
 
 	public void connectedToStockExcange() {
@@ -141,20 +141,20 @@ public class Broker implements Listener {
 	private void brokerCloseDay() {
 		for (TradingClient client : _clients.values()) {
 			for(StockOrder order : client.getBuyOrders())
-				_brokerStompClient.send("/topic/Orders",order.toString());
+				_brokerStompClient.send("/topic/Orders",order.toString()+"\n");
 			for(StockOrder order : client.getSellOrders())
-				_brokerStompClient.send("/topic/Orders",order.toString());
+				_brokerStompClient.send("/topic/Orders",order.toString()+"\n");
 		}
-		_brokerStompClient.send("/topic/orders", "closeDay "+_name +_day +"\n");		
+		_brokerStompClient.send("/topic/Orders", "closeDay "+_name+" "+_day +"\n");		
 	}
 
 	private void sellOrder(String clientName, String shares,String stockName, String price) {
-		StockOrder order= new StockOrder("sellOrder",Integer.parseInt(shares),stockName,Integer.parseInt(price));
+		StockOrder order= new StockOrder("sellOrder",Integer.parseInt(shares),stockName,Double.parseDouble(price));
 		_clients.get(clientName).addSellOrder(order);
 	}
 
 	private void buyOrder(String clientName, String shares,String stockName, String price) {
-		StockOrder order= new StockOrder("buyOrder",Integer.parseInt(shares),stockName,Integer.parseInt(price));
+		StockOrder order= new StockOrder("buyOrder",Integer.parseInt(shares),stockName,Double.parseDouble(price));
 		_clients.get(clientName).addBuyOrder(order);
 	}
 
@@ -173,7 +173,7 @@ public class Broker implements Listener {
 			_clients.put(clientName, new TradingClient());
 	}
 	
-	public float getCash() {
+	public double getCash() {
 		return _cash;
 	}
 	

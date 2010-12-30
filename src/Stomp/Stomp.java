@@ -517,7 +517,7 @@ public abstract class Stomp {
           for (Iterator i = listeners.iterator(); i.hasNext(); ) {
             Listener l = (Listener)i.next();
             try {
-              l.message( h, b );
+              l.message( h, b ,destination);
             } catch (Exception e) {
               // Don't let listeners screw us over by throwing exceptions
             }
@@ -539,7 +539,7 @@ public abstract class Stomp {
         synchronized (_error_listeners) {
           for (Iterator i = _error_listeners.iterator(); i.hasNext(); ) {
             try {
-              ((Listener)i.next()).message( h, b );
+              ((Listener)i.next()).message( h, b ,null);
             } catch (Exception e) {
               // Don't let listeners screw us over by throwing exceptions
             }

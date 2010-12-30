@@ -26,7 +26,8 @@ public class main {
 	 * @throws LoginException 
 	 */
 	public static void main(String[] args) throws LoginException, IOException {
-		Broker broker=new Broker("tom",10,1,"localhost", 61613);
+		Broker broker=new Broker("tom",0.1,"localhost", 61613);
+		broker.connectToStockExcange();
 		broker.message(null,"connected tom");
 		broker.message(null,"connected client1 tom");
 		broker.message(null,"connected client2 tom");
@@ -64,6 +65,7 @@ public class main {
 		broker.message(null,"closeDay client2 1");
 		broker.message(null,"closeDay client3 1");
 		broker.message(null,"closeDay client4 1");
+		broker.message(null,"closeDay client1 1");
 		broker.message(null,"deal client3 tom client4 aviahd stockName5 10 10");
 		broker.message(null,"deal client2 aviahd client4 tom stockName2 50 10");
 		System.out.println(broker.getCash());
