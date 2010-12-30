@@ -23,4 +23,8 @@ public class StockOrder {
 	String getType() {
 		return _type;
 	}
+	
+	public String toString() {
+		return _type + " " + _amount + " " + _stockName + " " + _price;
+	}
 }
