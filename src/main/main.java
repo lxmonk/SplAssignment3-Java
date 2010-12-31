@@ -31,6 +31,11 @@ public class main {
 		Broker broker=new Broker("tom",0.1,"localhost", 61613);
 		broker.connectToStockExcange();
 		//broker.message(null,"connected tom",null);
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+		}
 		broker.message(null,"connected client1 tom",null);
 		broker.message(null,"connected client2 tom",null);
 		broker.message(null,"connected client3 tom",null);

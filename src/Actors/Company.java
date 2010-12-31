@@ -3,26 +3,28 @@
  */
 package Actors;
 
-import java.util.Vector;
+import java.util.TreeMap;
 
 /**
  * @author tom
  *
  */
 public class Company {
-	final String _name;
-	double _price;
-	int _numOfShares;
-	Vector<StockOrder> _buyOrders; // TODO: sort by price from small to big
-	Vector<StockOrder> _sellOrders;
+	private final String _name;
+	private double _price;
+	private final int _numOfStocks;
+	private int _floatingShares;
+	private TreeMap<String,StockOrder> _buyOrders;
+	private TreeMap<String,StockOrder> _sellOrders;
 	
 
 	public Company(String name,int stocks,double price) {
-		_buyOrders = new Vector<StockOrder>();
-		_sellOrders = new Vector<StockOrder>();
+		_buyOrders = new TreeMap<String, StockOrder>();
+		_sellOrders = new TreeMap<String, StockOrder>();
 		_name=name;
 		_price=price;
-		_numOfShares=stocks;
+		_numOfStocks=stocks;
+		_floatingShares=stocks;
 	}
 	
 	String getName() {
@@ -37,35 +39,38 @@ public class Company {
 		_price=price;
 	}
 	
+	int getOriginalNumOfStocks() {
+		return _numOfStocks;
+	}
 	int getNumOfFlotingShares() {
-		return _numOfShares;
+		return _floatingShares;
 	}
 	
 	void setNumOfFlotingShares(int shares) {
-		_numOfShares=shares;
+		_floatingShares=shares;
 	}
 	
 	public void addBuyOrder(StockOrder order) {
-		_buyOrders.add(order);
+		_buyOrders.put(order.getName(), order);
 	}
 	
 	public void addBuyOrder(int amount,String client,double price) {
-		_buyOrders.add(new StockOrder("buyOrder",amount,client,price));
+		_buyOrders.put(client,new StockOrder("buyOrder",amount,client,price));
 	}
 
 	public void addSellOrder(StockOrder order) {
-		_sellOrders.add(order);
+		_sellOrders.put(order.getName(), order);
 	}
 	
 	public void addSellOrder(int amount,String client,double price) {
-		_buyOrders.add(new StockOrder("sellOrder",amount,client,price));
+		_sellOrders.put(client,new StockOrder("sellOrder",amount,client,price));
 	}
 	
-	public Vector<StockOrder> getBuyOrders() {
+	public TreeMap<String,StockOrder> getBuyOrders() {
 		return _buyOrders;
 	}
 	
-	public Vector<StockOrder> getSellOrders() {
+	public TreeMap<String,StockOrder> getSellOrders() {
 		return _sellOrders;
 	}
 	

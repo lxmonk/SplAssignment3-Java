@@ -20,16 +20,15 @@ import Stomp.Listener;
  */
 
 public class Broker implements Listener {
-	Client _brokerStompClient;	// Stomp Client
-	final int N=4;				 //Max number of clients the broker can deal with
-	final String _name;
-	final double _commission;
-	double _cash;
-	int _day;
-	Map<String,TradingClient> _clients;
-
-	boolean _connected;
-	int _numClosedCliends;
+	static final int N=4;				 //Max number of clients the broker can deal with
+	private Client _brokerStompClient;	// Stomp Client
+	private final String _name;
+	private final double _commission;
+	private double _cash;
+	private int _day;
+	private Map<String,TradingClient> _clients;
+	private boolean _connected;
+	private int _numClosedCliends;
 
 
 	public Broker(String name,double commision,String server, int port, String login, String pass) throws LoginException, IOException {
@@ -60,6 +59,7 @@ public class Broker implements Listener {
 	 */
 	@Override
 	public void message(Map headers, String body,String origin) {
+		body=body.replace("\n","");
 		Vector<String> parts = new Vector<String>();
 		for (String s : body.split(" "))
 			parts.add(s);
@@ -124,6 +124,7 @@ public class Broker implements Listener {
 
 	public void connectedToStockExcange() {
 		_brokerStompClient.subscribe("/topic/cConnected", this);
+		_brokerStompClient.subscribe("/topic/bConnected", this);
 		_brokerStompClient.subscribe("/topic/cDisconnected", this);
 		_brokerStompClient.subscribe("/topic/bOrders-"+_name, this);
 		_brokerStompClient.subscribe("/topic/bDeals-"+_name, this);

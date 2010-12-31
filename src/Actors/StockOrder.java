@@ -7,11 +7,11 @@ package Actors;
  * @author tom
  *
  */
-public class StockOrder {	
-	final String _type;
-	final int _amount;
-	final String _name; //can be a stockName or a client name
-	final double _price;
+public class StockOrder implements Comparable<StockOrder>{	
+	private final String _type;
+	private final int _amount;
+	private final String _name; //can be a stockName or a client name
+	private final double _price;
 	
 	/**
 	 * a StockOrder constructor 
@@ -45,5 +45,28 @@ public class StockOrder {
 	
 	public String toString() {
 		return _type + " " + _amount + " " + _name + " " + _price;
+	}
+
+	@Override
+	public int compareTo(StockOrder o) {
+		if ((_type == "sellOrder") && (o.getType() == "sellOrder")) {
+			if (_price > o.getPrice())
+				return 1;
+			else
+				if (_price < o.getPrice())
+					return -1;
+				else
+					return _name.compareTo(o.getName());
+		} else
+			if ((_type == "buyOrder") && (o.getType() == "buyOrder")) {
+				if (_price < o.getPrice())
+					return 1;
+				else
+					if (_price > o.getPrice())
+						return -1;
+					else
+						return _name.compareTo(o.getName());
+			} else
+		return 0;
 	}
 }

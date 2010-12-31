@@ -47,6 +47,6 @@ destination: /topic/cDeals-client4
 ack: auto
 
 SUBSCRIBE
-destination:
+destination: /topic/bConnect
 ack: auto
 
