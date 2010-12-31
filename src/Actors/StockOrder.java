@@ -10,13 +10,20 @@ package Actors;
 public class StockOrder {	
 	final String _type;
 	final int _amount;
-	final String _stockName;
-	final Double _price;
+	final String _name; //can be a stockName or a client name
+	final double _price;
 	
-	StockOrder(String type,int amount,String stockName,Double price) {
+	/**
+	 * a StockOrder constructor 
+	 * @param type type of order buy/sell
+	 * @param amount amount of stocks
+	 * @param name the name of the stock or the name of the client how made the order
+	 * @param price price of the stock
+	 */
+	StockOrder(String type,int amount,String name,double price) {
 		_type=type;
 		_amount=amount;
-		_stockName=stockName;
+		_name=name;
 		_price=price;
 	}
 	
@@ -24,7 +31,19 @@ public class StockOrder {
 		return _type;
 	}
 	
+	int getAmount() {
+		return _amount;
+	}
+	
+	String getName() {
+		return _name;
+	}
+	
+	double getPrice() {
+		return _price;
+	}
+	
 	public String toString() {
-		return _type + " " + _amount + " " + _stockName + " " + _price;
+		return _type + " " + _amount + " " + _name + " " + _price;
 	}
 }
