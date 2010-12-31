@@ -10,12 +10,10 @@ package Actors;
 public class StockExchangeBroker implements Comparable<StockExchangeBroker> {
 	private final String _name;
 	private int _numOfClients;
-	private boolean _open;
 
 	public StockExchangeBroker(String name) {
 		_name=name;
 		_numOfClients=0;
-		_open=true;
 	}
 
 	void incClientNum() {
@@ -32,14 +30,6 @@ public class StockExchangeBroker implements Comparable<StockExchangeBroker> {
 
 	int getNumOfClients() {
 		return _numOfClients;
-	}
-
-	void closeDay(){
-		_open=false;
-	}
-
-	boolean isWorking() {
-		return _open;
 	}
 
 	@Override

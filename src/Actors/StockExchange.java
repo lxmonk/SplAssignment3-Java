@@ -40,6 +40,9 @@ public class StockExchange implements Listener {
 	Set<String> _newBrokers;
 	Set<String> _newClients;
 	int _day;
+	int _numActiveClients;
+	int _numActiveCBrokers;
+
 
 	public StockExchange(String server, int port, String login, String pass) throws LoginException, IOException {
 		_stockExchangeStompClient = new Client(server,port,login,pass);
@@ -48,7 +51,9 @@ public class StockExchange implements Listener {
 
 		_cash=0;
 		_numOfClosedBrockers=0;
-		_day=0;
+		_day=-1;
+		_numActiveClients=0;
+		_numActiveCBrokers=0;
 		_newBrokers= new HashSet<String>();
 		_newClients= new HashSet<String>();
 		_stockExchangeStompClient.subscribe("/topic/bConnect",this);
@@ -71,12 +76,14 @@ public class StockExchange implements Listener {
 		for (String s : body.split(" "))
 			parts.add(s);
 		// Broker connected 
-		if ((origin.equals("/topic/bConnect")) && (parts.elementAt(0).equals("connect")) && (parts.size() == 2)) {
+		if ((origin != null) && (origin.equals("/topic/bConnect")) 
+				&& (parts.elementAt(0).equals("connect")) 
+				&& (parts.size() == 2)) {
 			connectBroker(parts.elementAt(1));
 			return;
 		}
 		// Client connected
-		if ((origin.equals("/topic/cConnect")) && (parts.elementAt(0).equals("connect")) && (parts.size() == 2)) {
+		if ((origin != null) && (origin.equals("/topic/cConnect")) && (parts.elementAt(0).equals("connect")) && (parts.size() == 2)) {
 			connectClient(parts.elementAt(1));
 			return;
 		}
@@ -103,33 +110,17 @@ public class StockExchange implements Listener {
 	}
 
 	private void brokerClosedTheDay(String brokerName) {
-		//_brokers.get(brokerName).closeDay();
 		_numOfClosedBrockers++;
-		if(_numOfClosedBrockers == _brokers.size())
+		if(_numOfClosedBrockers == _numActiveCBrokers)
 			endTheDay();
 	}
 
 	private void endTheDay() {
 		computeDeals();
 		updatePrices();
-		connectNewBrokers();
-		connectNewClients();
 		startNewDay();
 	}
 
-	//	private void findMatchForBuyOrder(String clientName, int shares,String stockName, double price){
-	//		Company stockCompany=_companies.get(stockName);
-	//		double flotPrice=-1;
-	//		double sellPrice=-1;
-	//		if (stockCompany.getNumOfFlotingShares() <= shares) 
-	//			flotPrice=stockCompany.getPrice();
-	//		for(StockOrder order : stockCompany.getSellOrders()) {
-	//			if !(flotPrice != -1) && order.getPrice() >
-	//			if (order.getAmount() <= shares) 
-	//				
-	//		}
-	//			stockCompany.getSellOrders()
-	//	}
 	private void computeDeals() {
 		for(Company company : _companies.values()) {
 			TreeMap<String,StockOrder> buys = company.getBuyOrders();
@@ -164,26 +155,56 @@ public class StockExchange implements Listener {
 			company.endDay();
 	}
 
-	private void startNewDay() {
+	public void startNewDay() {
+		_day++;
 		_stockExchangeStompClient.send("/topic/calendar", "newDay "+_day+"\n");
-
+		connectNewBrokers();
+		connectNewClients();
+		publishPrices();
 	}
 
-	private void connectNewClients() {
+	private void publishPrices() {
+		String mesg="Prices " +_day + ":\n ";
+		for(Company company : _companies.values()) 
+			mesg+=company.getName()+" "+  company.getPrice()+"\n"; 
+		_stockExchangeStompClient.send("/topic/Prices", mesg);
+	}
+
+	private synchronized void connectNewClients() {
+		while (_numActiveClients == 0 && _newClients.size() == 0) {
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		for(String client : _newClients) {
 			for(StockExchangeBroker broker : _brokers.values()) {
 				if (broker.getNumOfClients() == N) {
 					_stockExchangeStompClient.send("/topic/Connected","connectFailed "+client+"\n");
+					_numActiveClients++;
 				} else {
+					if (broker.getNumOfClients() == 0)
+						_numActiveCBrokers++;
 					broker.incClientNum();
-					_stockExchangeStompClient.send("/topic/Connected","connected "+client+" "+broker.getName() +"\n");
+					_stockExchangeStompClient.send("/topic/cConnected","connected "+client+" "+broker.getName() +"\n");
+					_numActiveClients++;
 				}
 				_newClients.remove(client);
 			}
 		}
 	}
 
-	private void connectNewBrokers() {
+	private synchronized void connectNewBrokers() {
+		while (_numActiveCBrokers == 0 && _newBrokers.size() == 0) {
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		for(String broker : _newBrokers) {
 			_brokers.put(broker, new StockExchangeBroker(broker));
 			_stockExchangeStompClient.send("/topic/bConnected", "connected "+broker+"\n");			

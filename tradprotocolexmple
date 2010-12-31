@@ -3,15 +3,11 @@ login:tom-putty
 passcode:pass
 
 SUBSCRIBE
+destination: /topic/bConnect
+ack: auto
+
+SUBSCRIBE
 destination: /topic/bConnected
-ack: auto
-
-SUBSCRIBE
-destination: /topic/cConnected
-ack: auto
-
-SUBSCRIBE
-destination: /topic/cDisconnected
 ack: auto
 
 SUBSCRIBE
@@ -23,11 +19,15 @@ destination: /topic/bDeals-tom
 ack: auto
 
 SUBSCRIBE
-destination: /topic/calendar
+destination: /topic/cConnect
 ack: auto
 
 SUBSCRIBE
-destination: /topic/Orders
+destination: /topic/cConnected
+ack: auto
+
+SUBSCRIBE
+destination: /topic/cDisconnected
 ack: auto
 
 SUBSCRIBE
@@ -47,6 +47,19 @@ destination: /topic/cDeals-client4
 ack: auto
 
 SUBSCRIBE
-destination: /topic/bConnect
+destination: /topic/Prices
 ack: auto
+
+SUBSCRIBE
+destination: /topic/calendar
+ack: auto
+
+SUBSCRIBE
+destination: /topic/Orders
+ack: auto
+
+SEND
+destination:/topic/cConnect
+
+connect client1
 

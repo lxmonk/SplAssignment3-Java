@@ -160,7 +160,6 @@ public class Broker implements Listener {
 	}
 
 	private void newDay(int day) {
-		_clients.clear();
 		_numClosedCliends=0;
 		_day=day;
 	}

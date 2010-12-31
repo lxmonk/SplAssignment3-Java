@@ -28,18 +28,29 @@ public class main {
 	 */
 	public static void main(String[] args) throws LoginException, IOException {
 		StockExchange stockExchange=new StockExchange("localhost", 61613);
+		stockExchange.startNewDay();
 		Broker broker=new Broker("tom",0.1,"localhost", 61613);
 		broker.connectToStockExcange();
-		//broker.message(null,"connected tom",null);
+	//	broker.message(null,"connected tom","/topic/bConnect");
+//		try {
+//			Thread.sleep(10000);
+//		} catch (InterruptedException e) {
+//			// TODO Auto-generated catch block
+//		}
+		//stockExchange.message(null,"connect client1 ","/topic/cConnect");
+		stockExchange.message(null,"connect client2 ","/topic/cConnect");
+		stockExchange.message(null,"connect client3 ","/topic/cConnect");
+		stockExchange.message(null,"connect client4 ","/topic/cConnect");
 		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-		}
-		broker.message(null,"connected client1 tom",null);
-		broker.message(null,"connected client2 tom",null);
-		broker.message(null,"connected client3 tom",null);
-		broker.message(null,"connected client4 tom",null);
+		Thread.sleep(10000);
+	} catch (InterruptedException e) {
+		// TODO Auto-generated catch block
+	}
+		stockExchange.message(null,"closeDay tom 0",null);
+//		broker.message(null,"connected client1 tom",null);
+//		broker.message(null,"connected client2 tom",null);
+//		broker.message(null,"connected client3 tom",null);
+//		broker.message(null,"connected client4 tom",null);
 		broker.message(null,"sellOrder client1 tom 11 stockName1 101",null);
 		broker.message(null,"sellOrder client2 tom 12 stockName2 102",null);
 		broker.message(null,"sellOrder client3 tom 13 stockName3 103",null);
@@ -55,11 +66,11 @@ public class main {
 		broker.message(null,"deal client3 tom client4 aviahd stockName5 10 100",null);
 		broker.message(null,"deal client2 aviahd client4 tom stockName2 10 200",null);
 		broker.message(null,"newDay 2",null);
-		broker.message(null,"connected client1 tom",null);
-		broker.message(null,"connected client2 tom",null);
-		broker.message(null,"connected client3 tom",null);
-		broker.message(null,"connected client4 tom",null);
-		broker.message(null,"connected client5 tom",null);
+//		broker.message(null,"connected client1 tom",null);
+//		broker.message(null,"connected client2 tom",null);
+//		broker.message(null,"connected client3 tom",null);
+//		broker.message(null,"connected client4 tom",null);
+//		broker.message(null,"connected client5 tom",null);
 		System.out.println(broker.getCash());
 		broker.message(null,"sellOrder client1 tom 11 stockName1 101",null);
 		broker.message(null,"sellOrder client2 tom 12 stockName2 102",null);

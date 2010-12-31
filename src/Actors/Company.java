@@ -94,7 +94,9 @@ public class Company {
 	}
 
 	public void addDefaultOrder() {
-		if (_floatingShares > 0)
-			addSellOrder("StockExchange","StockExchange",_floatingShares,_name,_price);		
+		if (_floatingShares > 0) {
+			addSellOrder("StockExchange","StockExchange",_floatingShares,_name,_price);
+			_dailyDelta++; //cancels the reduction done in the addSellOrder
+		}
 	}
 }
