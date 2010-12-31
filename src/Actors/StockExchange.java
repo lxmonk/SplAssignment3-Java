@@ -20,6 +20,7 @@ import java.util.Vector;
 import java.util.Map.Entry;
 
 import javax.security.auth.login.LoginException;
+import javax.swing.text.html.MinimalHTMLWriter;
 import javax.swing.text.html.HTMLDocument.Iterator;
 
 import Stomp.Client;
@@ -90,12 +91,12 @@ public class StockExchange implements Listener {
 		}
 		// Broker passed a buyOrder
 		if ((parts.elementAt(0).equals("buyOrder"))  && (parts.size() == 6)) {
-			addBuyOrder(parts.elementAt(1),Integer.parseInt(parts.elementAt(3)),parts.elementAt(4),Double.parseDouble(parts.elementAt(5)));
+			addBuyOrder(parts.elementAt(1),parts.elementAt(2),Integer.parseInt(parts.elementAt(3)),parts.elementAt(4),Double.parseDouble(parts.elementAt(5)));
 			return;
 		}
 		// Broker passed a sellOrder
 		if ((parts.elementAt(0).equals("sellOrder"))  && (parts.size() == 6)) {
-			addSellOrder(parts.elementAt(1),Integer.parseInt(parts.elementAt(3)),parts.elementAt(4),Double.parseDouble(parts.elementAt(5)));
+			addSellOrder(parts.elementAt(1),parts.elementAt(2),Integer.parseInt(parts.elementAt(3)),parts.elementAt(4),Double.parseDouble(parts.elementAt(5)));
 			return;
 		}
 
@@ -116,9 +117,56 @@ public class StockExchange implements Listener {
 		startNewDay();
 	}
 
+	//	private void findMatchForBuyOrder(String clientName, int shares,String stockName, double price){
+	//		Company stockCompany=_companies.get(stockName);
+	//		double flotPrice=-1;
+	//		double sellPrice=-1;
+	//		if (stockCompany.getNumOfFlotingShares() <= shares) 
+	//			flotPrice=stockCompany.getPrice();
+	//		for(StockOrder order : stockCompany.getSellOrders()) {
+	//			if !(flotPrice != -1) && order.getPrice() >
+	//			if (order.getAmount() <= shares) 
+	//				
+	//		}
+	//			stockCompany.getSellOrders()
+	//	}
+	private void computeDeals() {
+		for(Company company : _companies.values()) {
+			TreeMap<String,StockOrder> buys = company.getBuyOrders();
+			TreeMap<String,StockOrder> sells = company.getSellOrders();
+			StockOrder buy = (StockOrder) buys.pollFirstEntry();
+			StockOrder sell = (StockOrder) sells.pollFirstEntry();
+			while((buy != null) && (sell != null)) {
+				double price=Math.min(buy.getPrice(),sell.getPrice());
+				int amount=Math.min(buy.getAmount(), sell.getAmount());
+				if (sell.getClientName().equals("StockExchange")) {
+					_cash+=price;
+					_stockExchangeStompClient.send("/topic/bDeals-"+buy.getBrokerName(),
+							"deal "+ buy.getClientName()+" "+ buy.getBrokerName() +" StockExchange " + buy.getStockName()+ " " 
+							+ amount + " "+ price + "\n");
+					company.addDefaultOrder(); 
+				} else {
+					String mes="deal "+ buy.getClientName()+" "+ buy.getBrokerName() +" "+ sell.getClientName()+" "+ sell.getBrokerName() +" " + buy.getStockName()+ " " 
+					+ amount + " "+ price + "\n";
+					_stockExchangeStompClient.send("/topic/bDeals-"+buy.getBrokerName(),mes);
+					_stockExchangeStompClient.send("/topic/bDeals-"+sell.getBrokerName(),mes);
+				}
+				buy = (StockOrder) buys.pollFirstEntry();
+				sell = (StockOrder) sells.pollFirstEntry();
+			}
+		}
+	}
+
+
+
+	private void updatePrices() {
+		for(Company company : _companies.values())
+			company.endDay();
+	}
+
 	private void startNewDay() {
 		_stockExchangeStompClient.send("/topic/calendar", "newDay "+_day+"\n");
-		
+
 	}
 
 	private void connectNewClients() {
@@ -143,27 +191,14 @@ public class StockExchange implements Listener {
 		}
 	}
 
-	private void addSellOrder(String clientName, int shares,String stockName, double price) {
-		_companies.get(stockName).addSellOrder(shares,clientName,price);
+	private void addSellOrder(String clientName,String brokerName, int shares,String stockName, double price) {
+		_companies.get(stockName).addSellOrder(clientName,brokerName,shares,clientName,price);
 	}
 
-	private void addBuyOrder(String clientName, int shares,String stockName, double price) {
-		_companies.get(stockName).addBuyOrder(shares,clientName,price);
+	private void addBuyOrder(String clientName,String brokerName, int shares,String stockName, double price) {
+		_companies.get(stockName).addBuyOrder(clientName,brokerName,shares,clientName,price);
 	}
 
-	//	private void findMatchForBuyOrder(String clientName, int shares,String stockName, double price){
-	//		Company stockCompany=_companies.get(stockName);
-	//		double flotPrice=-1;
-	//		double sellPrice=-1;
-	//		if (stockCompany.getNumOfFlotingShares() <= shares) 
-	//			flotPrice=stockCompany.getPrice();
-	//		for(StockOrder order : stockCompany.getSellOrders()) {
-	//			if !(flotPrice != -1) && order.getPrice() >
-	//			if (order.getAmount() <= shares) 
-	//				
-	//		}
-	//			stockCompany.getSellOrders()
-	//	}
 
 	private void connectClient(String clientName) {
 		_newClients.add(clientName);

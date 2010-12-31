@@ -150,12 +150,12 @@ public class Broker implements Listener {
 	}
 
 	private void sellOrder(String clientName, String shares,String stockName, String price) {
-		StockOrder order= new StockOrder("sellOrder",Integer.parseInt(shares),stockName,Double.parseDouble(price));
+		StockOrder order= new StockOrder("sellOrder",clientName,_name,Integer.parseInt(shares),stockName,Double.parseDouble(price));
 		_clients.get(clientName).addSellOrder(order);
 	}
 
 	private void buyOrder(String clientName, String shares,String stockName, String price) {
-		StockOrder order= new StockOrder("buyOrder",Integer.parseInt(shares),stockName,Double.parseDouble(price));
+		StockOrder order= new StockOrder("buyOrder",clientName,_name,Integer.parseInt(shares),stockName,Double.parseDouble(price));
 		_clients.get(clientName).addBuyOrder(order);
 	}
 

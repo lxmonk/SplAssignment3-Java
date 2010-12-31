@@ -16,6 +16,7 @@ public class Company {
 	private int _floatingShares;
 	private TreeMap<String,StockOrder> _buyOrders;
 	private TreeMap<String,StockOrder> _sellOrders;
+	private int _dailyDelta;
 	
 
 	public Company(String name,int stocks,double price) {
@@ -25,6 +26,8 @@ public class Company {
 		_price=price;
 		_numOfStocks=stocks;
 		_floatingShares=stocks;
+		_dailyDelta=0;
+		addDefaultOrder();
 	}
 	
 	String getName() {
@@ -51,19 +54,23 @@ public class Company {
 	}
 	
 	public void addBuyOrder(StockOrder order) {
-		_buyOrders.put(order.getName(), order);
+		_dailyDelta+=order.getAmount();
+		_buyOrders.put(order.getClientName(), order);
 	}
 	
-	public void addBuyOrder(int amount,String client,double price) {
-		_buyOrders.put(client,new StockOrder("buyOrder",amount,client,price));
+	public void addBuyOrder(String client,String broker,int amount,String name,double price) {
+		_dailyDelta+=amount;
+		_buyOrders.put(client,new StockOrder("buyOrder",client,broker,amount,name,price));
 	}
 
 	public void addSellOrder(StockOrder order) {
-		_sellOrders.put(order.getName(), order);
+		_dailyDelta-=order.getAmount();
+		_sellOrders.put(order.getClientName(), order);
 	}
 	
-	public void addSellOrder(int amount,String client,double price) {
-		_sellOrders.put(client,new StockOrder("sellOrder",amount,client,price));
+	public void addSellOrder(String client,String broker,int amount,String name,double price) {
+		_dailyDelta-=amount;
+		_sellOrders.put(client,new StockOrder("sellOrder",client,broker,amount,name,price));
 	}
 	
 	public TreeMap<String,StockOrder> getBuyOrders() {
@@ -74,4 +81,20 @@ public class Company {
 		return _sellOrders;
 	}
 	
+	private void computeNewPrice() {
+		_price=_price*(1+(_dailyDelta/_numOfStocks));
+	}
+	
+	public void endDay() {
+		computeNewPrice();
+		_dailyDelta=0;
+		_buyOrders.clear();
+		_sellOrders.clear();
+		addDefaultOrder();
+	}
+
+	public void addDefaultOrder() {
+		if (_floatingShares > 0)
+			addSellOrder("StockExchange","StockExchange",_floatingShares,_name,_price);		
+	}
 }
