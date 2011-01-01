@@ -31,30 +31,58 @@ public class StockOrder implements Comparable<StockOrder>{
 		_price=price;
 	}
 	
+	/**
+	 * returns {@link StockOrder} type
+	 * @return type
+	 */
 	String getType() {
 		return _type;
 	}
 	
+	/**
+	 * returns {@link StockOrder} amount
+	 * @return amount
+	 */
 	int getAmount() {
 		return _amount;
 	}
 	
+	/**
+	 * returns {@link StockOrder} stockName
+	 * @return stock's name
+	 */
 	String getStockName() {
 		return _stockname;
 	}
 	
+	/**
+	 * returns {@link StockOrder} clientName
+	 * @return client's name
+	 */
 	String getClientName() {
 		return _clientName;
 	}
 	
+	/**
+	 * returns {@link StockOrder} broker Name
+	 * @return broker's name
+	 */
 	String getBrokerName() {
 		return _brokerName;
 	}
 	
+	/**
+	 * returns {@link StockOrder} the price stated in the order
+	 * @return stock's wanted price
+	 */
 	double getPrice() {
 		return _price;
 	}
 	
+	/**
+	 * returns {@link StockOrder} a string with all the order's info
+	 * @return a string
+	 */
 	public String toString() {
 		return _type+" "+ _clientName + " "+_brokerName +" "+ _amount + " " + _stockname + " " + _price;
 	}

@@ -5,12 +5,17 @@ package stockExchangePac;
 
 /**
  * @author tom
- *
+ * @info a object representing a broker in the stockExchnage 
  */
+
 public class StockExchangeBroker implements Comparable<StockExchangeBroker> {
 	private final String _name;
 	private int _numOfClients;
 
+	/**
+	 * a new {@link StockExchangeBroker}
+	 * @param name 
+	 */
 	public StockExchangeBroker(String name) {
 		_name=name;
 		_numOfClients=0;

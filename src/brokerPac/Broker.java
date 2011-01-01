@@ -47,7 +47,7 @@ public class Broker implements Listener {
 		_brokerStompClient = new Client(server,port,login,pass);
 	}
 
-	public Broker(String name,double commision,String server, int port) throws FileNotFoundException, LoginException, IOException {
+	public Broker(String name,String server, int port) throws FileNotFoundException, LoginException, IOException {
 		this(name,server,port,"login","pass");
 	}
 
@@ -134,12 +134,11 @@ public class Broker implements Listener {
 		_brokerStompClient.subscribe("/topic/cDisconnected", this);
 		_brokerStompClient.subscribe("/topic/bOrders-"+_name, this);
 		_brokerStompClient.subscribe("/topic/bDeals-"+_name, this);
-		_brokerStompClient.subscribe("/topic/calendar", this);
+		_brokerStompClient.subscribe("/topic/Calendar", this);
 		_connected=true;
 	}
 
 	private void ClientclosedDay(String clientName, int day) {
-		_clients.get(clientName).closeDay();
 		_numClosedCliends++;
 		if (_clients.size() == _numClosedCliends) 
 			brokerCloseDay();

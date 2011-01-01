@@ -16,9 +16,9 @@ public class Company {
 	private double _price;
 	private final int _numOfStocks;
 	private int _floatingShares;
-	private TreeMap<String,StockOrder> _buyOrders;
-	private TreeMap<String,StockOrder> _sellOrders;
-	private int _dailyDelta;
+	public TreeMap<String,StockOrder> _buyOrders;
+	public TreeMap<String,StockOrder> _sellOrders;
+	private double _dailyDelta;
 	
 
 	public Company(String name,int stocks,double price) {
@@ -98,7 +98,7 @@ public class Company {
 	public void addDefaultOrder() {
 		if (_floatingShares > 0) {
 			addSellOrder("StockExchange","StockExchange",_floatingShares,_name,_price);
-			_dailyDelta++; //cancels the reduction done in the addSellOrder
+			_dailyDelta+=_floatingShares; //cancels the reduction done in the addSellOrder
 		}
 	}
 }

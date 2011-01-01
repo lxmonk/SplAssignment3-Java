@@ -41,6 +41,7 @@ public class StockExchange implements Listener {
 	Client _stockExchangeStompClient;
 	Map<String,Company> _companies;
 	TreeMap<String,StockExchangeBroker> _brokers;
+	Map<String,String> _clients;
 	double _cash;
 	int _numOfClosedBrockers;
 	List<String> _newBrokers;
@@ -62,6 +63,7 @@ public class StockExchange implements Listener {
 		_numActiveCBrokers=0;
 		_newBrokers= new ArrayList<String>();
 		_newClients= new ArrayList<String>();
+		_clients= new HashMap<String, String>();
 		_stockExchangeStompClient.subscribe("/topic/bConnect",this);
 		_stockExchangeStompClient.subscribe("/topic/cConnect",this);
 		_stockExchangeStompClient.subscribe("/topic/Orders",this);
@@ -132,19 +134,21 @@ public class StockExchange implements Listener {
 	}
 
 	private void disconnectClient(String client) {
-		for(Company company : _companies.values()) {
+		for(Company company : _companies.values()) { 
 			StockOrder order = company.getBuyOrders().get(client);
-			while (order != null) {
+			while (order != null) { //remove buy orders
 				company.getBuyOrders().remove(client);
 				order = company.getBuyOrders().get(client);
 			}
 			order = company.getSellOrders().get(client);
-			while (order != null) {
+			while (order != null) { //sell buy orders
 				company.getSellOrders().remove(client);
 				order = company.getSellOrders().get(client);
 			}
 		}
 		_numActiveClients--;
+		_brokers.get(_clients.get(client)).decClientNum();
+		_clients.remove(client);
 		_stockExchangeStompClient.unsubscribe("/topic/cDeals-"+client,this);
 		_stockExchangeStompClient.send("/topic/cDisconnected","disconnected "+ client+"\n");
 	}
@@ -163,26 +167,25 @@ public class StockExchange implements Listener {
 
 	private void computeDeals() {
 		for(Company company : _companies.values()) {
-			TreeMap<String,StockOrder> buys = company.getBuyOrders();
-			TreeMap<String,StockOrder> sells = company.getSellOrders();
-			while((buys.size() > 0) && (sells.size() > 0)) {	
-				StockOrder buy = (StockOrder) buys.pollFirstEntry();
-				StockOrder sell = (StockOrder) sells.pollFirstEntry();
-//				StockOrder buy = buys.get(buys.firstKey());
-//				StockOrder sell = sells.get(sells.firstKey());
+			while((company._buyOrders.size() > 0) && (company._sellOrders.size() > 0)) {	
+				StockOrder buy = company._buyOrders.get(company._buyOrders.firstKey());
+				StockOrder sell = company._sellOrders.get(company._sellOrders.firstKey());
+				if (sell.getPrice() > buy.getPrice()) break;
 				double price=Math.min(buy.getPrice(),sell.getPrice());
 				int amount=Math.min(buy.getAmount(), sell.getAmount());
+				String mes="deal "+ buy.getClientName()+" "+ buy.getBrokerName() +" "+ sell.getClientName()+" "+ sell.getBrokerName() +" " + buy.getStockName()+ " " 
+				+ amount + " "+ price + "\n";
 				if (sell.getClientName().equals("StockExchange")) {
 					_cash+=price;
-					_stockExchangeStompClient.send("/topic/bDeals-"+buy.getBrokerName(),
-							"deal "+ buy.getClientName()+" "+ buy.getBrokerName() +" StockExchange " + buy.getStockName()+ " " 
-							+ amount + " "+ price + "\n");
+					_stockExchangeStompClient.send("/topic/bDeals-"+buy.getBrokerName(),mes);
+					company._buyOrders.remove(buy.getClientName());
+					company._sellOrders.remove(sell.getClientName());
 					company.addDefaultOrder(); 
 				} else {
-					String mes="deal "+ buy.getClientName()+" "+ buy.getBrokerName() +" "+ sell.getClientName()+" "+ sell.getBrokerName() +" " + buy.getStockName()+ " " 
-					+ amount + " "+ price + "\n";
 					_stockExchangeStompClient.send("/topic/bDeals-"+buy.getBrokerName(),mes);
 					_stockExchangeStompClient.send("/topic/bDeals-"+sell.getBrokerName(),mes);
+					company._buyOrders.remove(buy.getClientName());
+					company._sellOrders.remove(sell.getClientName());
 				}
 			}
 		}
@@ -198,7 +201,7 @@ public class StockExchange implements Listener {
 	public void startNewDay() {
 		_numOfClosedBrockers=0;
 		_day++;
-		_stockExchangeStompClient.send("/topic/calendar", "newDay "+_day+"\n");
+		_stockExchangeStompClient.send("/topic/Calendar", "newDay "+_day+"\n");
 		connectNewBrokers();
 		connectNewClients();
 		publishPrices();
@@ -229,6 +232,7 @@ public class StockExchange implements Listener {
 				if (broker.getNumOfClients() == 0)
 					_numActiveCBrokers++;
 				broker.incClientNum();
+				_clients.put(client,broker.getName());
 				_stockExchangeStompClient.send("/topic/cConnected","connected "+client+" "+broker.getName() +"\n");
 				_stockExchangeStompClient.subscribe("/topic/cDeals-"+client, this);
 				_numActiveClients++;
@@ -254,11 +258,11 @@ public class StockExchange implements Listener {
 	}
 
 	private void addSellOrder(String clientName,String brokerName, int shares,String stockName, double price) {
-		_companies.get(stockName).addSellOrder(clientName,brokerName,shares,clientName,price);
+		_companies.get(stockName).addSellOrder(clientName,brokerName,shares,stockName,price);
 	}
 
 	private void addBuyOrder(String clientName,String brokerName, int shares,String stockName, double price) {
-		_companies.get(stockName).addBuyOrder(clientName,brokerName,shares,clientName,price);
+		_companies.get(stockName).addBuyOrder(clientName,brokerName,shares,stockName,price);
 	}
 
 
