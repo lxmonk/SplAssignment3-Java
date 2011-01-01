@@ -59,6 +59,11 @@ destination: /topic/Orders
 ack: auto
 
 SEND
+destination:/topic/bConnect
+
+connect tom
+
+SEND
 destination:/topic/cConnect
 
 connect client1

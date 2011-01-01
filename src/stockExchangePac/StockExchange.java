@@ -205,7 +205,7 @@ public class StockExchange implements Listener {
 	}
 
 	private void publishPrices() {
-		String mesg="Prices " +_day + ":\n ";
+		String mesg="Prices " +_day + ":\n";
 		for(Company company : _companies.values()) 
 			mesg+=company.getName()+" "+  company.getPrice()+"\n"; 
 		_stockExchangeStompClient.send("/topic/Prices", mesg);
