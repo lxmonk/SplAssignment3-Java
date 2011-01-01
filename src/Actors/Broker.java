@@ -60,6 +60,7 @@ public class Broker implements Listener {
 	@Override
 	public void message(Map headers, String body,String origin) {
 		body=body.replace("\n","");
+		body=body.replace("\r","");
 		Vector<String> parts = new Vector<String>();
 		for (String s : body.split(" "))
 			parts.add(s);
@@ -151,7 +152,8 @@ public class Broker implements Listener {
 
 	private void sellOrder(String clientName, String shares,String stockName, String price) {
 		StockOrder order= new StockOrder("sellOrder",clientName,_name,Integer.parseInt(shares),stockName,Double.parseDouble(price));
-		_clients.get(clientName).addSellOrder(order);
+		TradingClient test= _clients.get(clientName);
+		test.addSellOrder(order);
 	}
 
 	private void buyOrder(String clientName, String shares,String stockName, String price) {
@@ -166,6 +168,8 @@ public class Broker implements Listener {
 
 	private void clientDisconnected(String clientName) {
 		_clients.remove(clientName);
+		if (_clients.size() == _numClosedCliends) 
+			brokerCloseDay();
 	}
 
 	private void clientConnected(String clientName) {

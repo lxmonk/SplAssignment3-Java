@@ -88,9 +88,9 @@ public class Company {
 	public void endDay() {
 		computeNewPrice();
 		_dailyDelta=0;
-		_buyOrders.clear();
-		_sellOrders.clear();
-		addDefaultOrder();
+//		_buyOrders.clear();
+//		_sellOrders.clear();
+//		addDefaultOrder();
 	}
 
 	public void addDefaultOrder() {

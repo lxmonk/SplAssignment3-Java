@@ -37,8 +37,8 @@ public class StockExchange implements Listener {
 	TreeMap<String,StockExchangeBroker> _brokers;
 	double _cash;
 	int _numOfClosedBrockers;
-	Set<String> _newBrokers;
-	Set<String> _newClients;
+	List<String> _newBrokers;
+	List<String> _newClients;
 	int _day;
 	int _numActiveClients;
 	int _numActiveCBrokers;
@@ -54,8 +54,8 @@ public class StockExchange implements Listener {
 		_day=-1;
 		_numActiveClients=0;
 		_numActiveCBrokers=0;
-		_newBrokers= new HashSet<String>();
-		_newClients= new HashSet<String>();
+		_newBrokers= new ArrayList<String>();
+		_newClients= new ArrayList<String>();
 		_stockExchangeStompClient.subscribe("/topic/bConnect",this);
 		_stockExchangeStompClient.subscribe("/topic/cConnect",this);
 		_stockExchangeStompClient.subscribe("/topic/Orders",this);
@@ -72,6 +72,7 @@ public class StockExchange implements Listener {
 	@Override
 	public void message(Map headers, String body,String origin) {
 		body=body.replace("\n","");
+		body=body.replace("\r","");
 		Vector<String> parts = new Vector<String>();
 		for (String s : body.split(" "))
 			parts.add(s);
@@ -89,6 +90,7 @@ public class StockExchange implements Listener {
 		}
 		// Client disConnected
 		if ((parts.elementAt(0).equals("disconnect")) && (parts.size() == 2)) {
+			disconnectClient(parts.elementAt(1));
 			return;
 		}
 		// Broker closeDay
@@ -107,6 +109,23 @@ public class StockExchange implements Listener {
 			return;
 		}
 
+	}
+
+	private void disconnectClient(String client) {
+		for(Company company : _companies.values()) {
+			StockOrder order = company.getBuyOrders().get(client);
+			while (order != null) {
+				company.getBuyOrders().remove(client);
+				order = company.getBuyOrders().get(client);
+			}
+			order = company.getSellOrders().get(client);
+			while (order != null) {
+				company.getSellOrders().remove(client);
+				order = company.getSellOrders().get(client);
+			}
+		}
+		_numActiveClients--;
+		_stockExchangeStompClient.send("/topic/cDisconnected","disconnected "+ client+"\n");
 	}
 
 	private void brokerClosedTheDay(String brokerName) {
@@ -156,6 +175,7 @@ public class StockExchange implements Listener {
 	}
 
 	public void startNewDay() {
+		_numOfClosedBrockers=0;
 		_day++;
 		_stockExchangeStompClient.send("/topic/calendar", "newDay "+_day+"\n");
 		connectNewBrokers();
@@ -170,7 +190,7 @@ public class StockExchange implements Listener {
 		_stockExchangeStompClient.send("/topic/Prices", mesg);
 	}
 
-	private synchronized void connectNewClients() {
+	private  void connectNewClients() {
 		while (_numActiveClients == 0 && _newClients.size() == 0) {
 			try {
 				Thread.sleep(100);
@@ -180,23 +200,22 @@ public class StockExchange implements Listener {
 			}
 		}
 		for(String client : _newClients) {
-			for(StockExchangeBroker broker : _brokers.values()) {
-				if (broker.getNumOfClients() == N) {
-					_stockExchangeStompClient.send("/topic/Connected","connectFailed "+client+"\n");
-					_numActiveClients++;
-				} else {
-					if (broker.getNumOfClients() == 0)
-						_numActiveCBrokers++;
-					broker.incClientNum();
-					_stockExchangeStompClient.send("/topic/cConnected","connected "+client+" "+broker.getName() +"\n");
-					_numActiveClients++;
-				}
-				_newClients.remove(client);
+			StockExchangeBroker broker=_brokers.get(_brokers.firstKey()); 
+			if (broker.getNumOfClients() == N) {
+				_stockExchangeStompClient.send("/topic/Connected","connectFailed "+client+"\n");
+				_numActiveClients++;
+			} else {
+				if (broker.getNumOfClients() == 0)
+					_numActiveCBrokers++;
+				broker.incClientNum();
+				_stockExchangeStompClient.send("/topic/cConnected","connected "+client+" "+broker.getName() +"\n");
+				_numActiveClients++;
 			}
 		}
+		_newClients.clear();
 	}
 
-	private synchronized void connectNewBrokers() {
+	private  void connectNewBrokers() {
 		while (_numActiveCBrokers == 0 && _newBrokers.size() == 0) {
 			try {
 				Thread.sleep(100);
@@ -208,8 +227,8 @@ public class StockExchange implements Listener {
 		for(String broker : _newBrokers) {
 			_brokers.put(broker, new StockExchangeBroker(broker));
 			_stockExchangeStompClient.send("/topic/bConnected", "connected "+broker+"\n");			
-			_newBrokers.remove(broker);			
 		}
+		_newBrokers.clear();
 	}
 
 	private void addSellOrder(String clientName,String brokerName, int shares,String stockName, double price) {
