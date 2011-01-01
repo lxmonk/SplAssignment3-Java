@@ -3,7 +3,9 @@
  */
 package stockExchangePac;
 
+import java.util.Comparator;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 import brokerPac.StockOrder;
 
@@ -16,14 +18,19 @@ public class Company {
 	private double _price;
 	private final int _numOfStocks;
 	private int _floatingShares;
-	public TreeMap<String,StockOrder> _buyOrders;
-	public TreeMap<String,StockOrder> _sellOrders;
+	public TreeSet<StockOrder> _buyOrders;
+	public TreeSet<StockOrder> _sellOrders;
 	private double _dailyDelta;
 	
 
 	public Company(String name,int stocks,double price) {
-		_buyOrders = new TreeMap<String, StockOrder>();
-		_sellOrders = new TreeMap<String, StockOrder>();
+		OrderComparator comp = new OrderComparator();
+		TreeSet<StockOrder> tmp = new TreeSet<StockOrder>(comp);
+		TreeSet<StockOrder> _brokers;
+		_brokers= new TreeSet<StockOrder>(new StockOrderCompare()); 
+		
+		_buyOrders = new TreeSet<StockOrder>(new StockOrderCompare());
+		_sellOrders = new TreeSet<StockOrder>(new StockOrderCompare());
 		_name=name;
 		_price=price;
 		_numOfStocks=stocks;
@@ -57,29 +64,29 @@ public class Company {
 	
 	public void addBuyOrder(StockOrder order) {
 		_dailyDelta+=order.getAmount();
-		_buyOrders.put(order.getClientName(), order);
+		_buyOrders.add(order);
 	}
 	
 	public void addBuyOrder(String client,String broker,int amount,String name,double price) {
 		_dailyDelta+=amount;
-		_buyOrders.put(client,new StockOrder("buyOrder",client,broker,amount,name,price));
+		_buyOrders.add(new StockOrder("buyOrder",client,broker,amount,name,price));
 	}
 
 	public void addSellOrder(StockOrder order) {
 		_dailyDelta-=order.getAmount();
-		_sellOrders.put(order.getClientName(), order);
+		_sellOrders.add(order);
 	}
 	
 	public void addSellOrder(String client,String broker,int amount,String name,double price) {
 		_dailyDelta-=amount;
-		_sellOrders.put(client,new StockOrder("sellOrder",client,broker,amount,name,price));
+		_sellOrders.add(new StockOrder("sellOrder",client,broker,amount,name,price));
 	}
 	
-	public TreeMap<String,StockOrder> getBuyOrders() {
+	public TreeSet<StockOrder> getBuyOrders() {
 		return _buyOrders;
 	}
 	
-	public TreeMap<String,StockOrder> getSellOrders() {
+	public TreeSet<StockOrder> getSellOrders() {
 		return _sellOrders;
 	}
 	

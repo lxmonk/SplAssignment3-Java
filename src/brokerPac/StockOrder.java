@@ -7,7 +7,7 @@ package brokerPac;
  * @author tom
  *
  */
-public class StockOrder implements Comparable<StockOrder>{	
+public class StockOrder {	
 	private final String _type;
 	private final int _amount;
 	private final String _stockname; 
@@ -87,26 +87,4 @@ public class StockOrder implements Comparable<StockOrder>{
 		return _type+" "+ _clientName + " "+_brokerName +" "+ _amount + " " + _stockname + " " + _price;
 	}
 
-	@Override
-	public int compareTo(StockOrder o) {
-		if ((_type == "sellOrder") && (o.getType() == "sellOrder")) {
-			if (_price > o.getPrice())
-				return 1;
-			else
-				if (_price < o.getPrice())
-					return -1;
-				else
-					return _clientName.compareTo(o.getClientName());
-		} else
-			if ((_type == "buyOrder") && (o.getType() == "buyOrder")) {
-				if (_price < o.getPrice())
-					return 1;
-				else
-					if (_price > o.getPrice())
-						return -1;
-					else
-						return _clientName.compareTo(o.getClientName());
-			} else
-		return 0;
-	}
 }

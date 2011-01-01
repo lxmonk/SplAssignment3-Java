@@ -3,11 +3,13 @@
  */
 package stockExchangePac;
 
+import brokerPac.StockOrder;
+
 /**
  * @author tom
  *
  */
-public class StockOrder implements Comparable<StockOrder>{	
+public class StockOrder {	
 	private final String _type;
 	private final int _amount;
 	private final String _stockname; 
@@ -22,7 +24,7 @@ public class StockOrder implements Comparable<StockOrder>{
 	 * @param name the name of the stock or the name of the client how made the order
 	 * @param price price of the stock
 	 */
-	StockOrder(String type,String clientName,String brokerName,int amount,String stockname,double price) {
+	public StockOrder(String type,String clientName,String brokerName,int amount,String stockname,double price) {
 		_type=type;
 		_amount=amount;
 		_stockname=stockname;
@@ -35,7 +37,7 @@ public class StockOrder implements Comparable<StockOrder>{
 	 * returns {@link StockOrder} type
 	 * @return type
 	 */
-	String getType() {
+	public String getType() {
 		return _type;
 	}
 	
@@ -43,7 +45,7 @@ public class StockOrder implements Comparable<StockOrder>{
 	 * returns {@link StockOrder} amount
 	 * @return amount
 	 */
-	int getAmount() {
+	public int getAmount() {
 		return _amount;
 	}
 	
@@ -51,7 +53,7 @@ public class StockOrder implements Comparable<StockOrder>{
 	 * returns {@link StockOrder} stockName
 	 * @return stock's name
 	 */
-	String getStockName() {
+	public String getStockName() {
 		return _stockname;
 	}
 	
@@ -59,7 +61,7 @@ public class StockOrder implements Comparable<StockOrder>{
 	 * returns {@link StockOrder} clientName
 	 * @return client's name
 	 */
-	String getClientName() {
+	public String getClientName() {
 		return _clientName;
 	}
 	
@@ -67,7 +69,7 @@ public class StockOrder implements Comparable<StockOrder>{
 	 * returns {@link StockOrder} broker Name
 	 * @return broker's name
 	 */
-	String getBrokerName() {
+	public String getBrokerName() {
 		return _brokerName;
 	}
 	
@@ -75,7 +77,7 @@ public class StockOrder implements Comparable<StockOrder>{
 	 * returns {@link StockOrder} the price stated in the order
 	 * @return stock's wanted price
 	 */
-	double getPrice() {
+	public double getPrice() {
 		return _price;
 	}
 	
@@ -87,26 +89,4 @@ public class StockOrder implements Comparable<StockOrder>{
 		return _type+" "+ _clientName + " "+_brokerName +" "+ _amount + " " + _stockname + " " + _price;
 	}
 
-	@Override
-	public int compareTo(StockOrder o) {
-		if ((_type == "sellOrder") && (o.getType() == "sellOrder")) {
-			if (_price > o.getPrice())
-				return 1;
-			else
-				if (_price < o.getPrice())
-					return -1;
-				else
-					return _clientName.compareTo(o.getClientName());
-		} else
-			if ((_type == "buyOrder") && (o.getType() == "buyOrder")) {
-				if (_price < o.getPrice())
-					return 1;
-				else
-					if (_price > o.getPrice())
-						return -1;
-					else
-						return _clientName.compareTo(o.getClientName());
-			} else
-		return 0;
-	}
 }

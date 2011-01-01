@@ -19,8 +19,10 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.Vector;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.security.auth.login.LoginException;
 import javax.swing.text.html.MinimalHTMLWriter;
@@ -40,12 +42,11 @@ public class StockExchange implements Listener {
 	static final int N=4; // max number of clients per broker
 	Client _stockExchangeStompClient;
 	Map<String,Company> _companies;
-	TreeMap<String,StockExchangeBroker> _brokers;
-	Map<String,String> _clients;
+	TreeSet<StockExchangeBroker> _brokers;
 	double _cash;
 	int _numOfClosedBrockers;
-	List<String> _newBrokers;
-	List<String> _newClients;
+	Vector<String> _newBrokers;
+	Vector<String> _newClients;
 	int _day;
 	int _numActiveClients;
 	int _numActiveCBrokers;
@@ -54,16 +55,16 @@ public class StockExchange implements Listener {
 	public StockExchange(String server, int port, String login, String pass) throws FileNotFoundException, IOException, LoginException {
 		_stockExchangeStompClient = new Client(server,port,login,pass);
 		_companies=initCompanies();  
-		_brokers= new TreeMap<String, StockExchangeBroker>(); 
+		_brokers= new TreeSet<StockExchangeBroker>(new BrokerCompare()); 
 
 		_cash=0;
 		_numOfClosedBrockers=0;
 		_day=-1;
 		_numActiveClients=0;
 		_numActiveCBrokers=0;
-		_newBrokers= new ArrayList<String>();
-		_newClients= new ArrayList<String>();
-		_clients= new HashMap<String, String>();
+		_newBrokers= new Vector<String>();
+		_newClients= new Vector<String>();
+		//_clients= new HashMap<String,StockExchangeBroker>();
 		_stockExchangeStompClient.subscribe("/topic/bConnect",this);
 		_stockExchangeStompClient.subscribe("/topic/cConnect",this);
 		_stockExchangeStompClient.subscribe("/topic/Orders",this);
@@ -99,9 +100,7 @@ public class StockExchange implements Listener {
 		for (String s : body.split(" "))
 			parts.add(s);
 		// Broker connected 
-		if ((origin != null) && (origin.equals("/topic/bConnect")) 
-				&& (parts.elementAt(0).equals("connect")) 
-				&& (parts.size() == 2)) {
+		if ((origin != null) && (origin.equals("/topic/bConnect")) && (parts.elementAt(0).equals("connect")) && (parts.size() == 2)) {
 			connectBroker(parts.elementAt(1));
 			return;
 		}
@@ -147,8 +146,10 @@ public class StockExchange implements Listener {
 			}
 		}
 		_numActiveClients--;
-		_brokers.get(_clients.get(client)).decClientNum();
-		_clients.remove(client);
+		for (StockExchangeBroker broker : _brokers)
+			broker.removeClient(client);
+//		//_brokers.get(_clients.get(client)).decClientNum(); TODO:
+//		_clients.remove(client);
 		_stockExchangeStompClient.unsubscribe("/topic/cDeals-"+client,this);
 		_stockExchangeStompClient.send("/topic/cDisconnected","disconnected "+ client+"\n");
 	}
@@ -224,19 +225,21 @@ public class StockExchange implements Listener {
 			}
 		}
 		for(String client : _newClients) {
-			StockExchangeBroker broker=_brokers.get(_brokers.firstKey()); 
+//			StockExchangeBroker keyB = _brokers.firstKey();
+//			StockExchangeBroker broker=_brokers.get(keyB);;
+			StockExchangeBroker broker=_brokers.pollFirst();;
 			if (broker.getNumOfClients() == N) {
 				_stockExchangeStompClient.send("/topic/Connected","connectFailed "+client+"\n");
 				_numActiveClients++;
 			} else {
 				if (broker.getNumOfClients() == 0)
 					_numActiveCBrokers++;
-				broker.incClientNum();
-				_clients.put(client,broker.getName());
+				broker.addClient(client);
 				_stockExchangeStompClient.send("/topic/cConnected","connected "+client+" "+broker.getName() +"\n");
 				_stockExchangeStompClient.subscribe("/topic/cDeals-"+client, this);
 				_numActiveClients++;
 			}
+			_brokers.add(broker);
 		}
 		_newClients.clear();
 	}
@@ -251,7 +254,7 @@ public class StockExchange implements Listener {
 			}
 		}
 		for(String broker : _newBrokers) {
-			_brokers.put(broker, new StockExchangeBroker(broker));
+			_brokers. add(new StockExchangeBroker(broker));
 			_stockExchangeStompClient.send("/topic/bConnected", "connected "+broker+"\n");			
 		}
 		_newBrokers.clear();

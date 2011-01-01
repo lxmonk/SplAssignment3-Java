@@ -33,8 +33,10 @@ public class main {
 		StockExchange stockExchange=new StockExchange("localhost", 61613);
 		Broker broker1=new Broker("broker1","localhost", 61613);
 		Broker broker2=new Broker("broker2","localhost", 61613);
+		Broker broker3=new Broker("broker3","localhost", 61613);
 		broker1.connectToStockExcange();
 		broker2.connectToStockExcange();
+		broker3.connectToStockExcange();
 		stockExchange.startNewDay();
 //		stockExchange.message(null,"connect client2 ","/topic/cConnect");
 //		Thread.sleep(50);

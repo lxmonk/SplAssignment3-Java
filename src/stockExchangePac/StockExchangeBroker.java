@@ -3,14 +3,16 @@
  */
 package stockExchangePac;
 
+import java.util.Vector;
+
 /**
  * @author tom
  * @info a object representing a broker in the stockExchnage 
  */
 
-public class StockExchangeBroker implements Comparable<StockExchangeBroker> {
+public class StockExchangeBroker { 
 	private final String _name;
-	private int _numOfClients;
+	Vector<String> _clients;
 
 	/**
 	 * a new {@link StockExchangeBroker}
@@ -18,15 +20,22 @@ public class StockExchangeBroker implements Comparable<StockExchangeBroker> {
 	 */
 	public StockExchangeBroker(String name) {
 		_name=name;
-		_numOfClients=0;
+		_clients=new Vector<String>();
 	}
 
-	void incClientNum() {
-		_numOfClients++;
+//	void incClientNum() {
+//		_numOfClients++;
+//	}
+//
+//	void decClientNum() {
+//		_numOfClients--;
+//	}
+	void addClient(String client) {
+		_clients.add(client);
 	}
-
-	void decClientNum() {
-		_numOfClients--;
+	
+	void removeClient(String client) {
+		_clients.remove(client);
 	}
 
 	String getName() {
@@ -34,16 +43,8 @@ public class StockExchangeBroker implements Comparable<StockExchangeBroker> {
 	}
 
 	int getNumOfClients() {
-		return _numOfClients;
+		return _clients.size();
 	}
 
-	@Override
-	public int compareTo(StockExchangeBroker o) {
-		if (_numOfClients > o.getNumOfClients())
-			return 1;
-		else
-			if (_numOfClients < o.getNumOfClients())
-				return 1;
-		return _name.compareTo(o.getName());
-	}
+
 }
